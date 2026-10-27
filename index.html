@@ -1,0 +1,451 @@
+<!doctype html>
+<html lang="zh-CN">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1">
+<meta name="robots" content="noindex, nofollow">
+<title>初稿评选</title>
+<style>
+:root{
+  --bg:#f5efe6; --card:#fffdfa; --ink:#2e2925; --muted:#8a7f74; --line:#e8dccb;
+  --accent:#a8322d; --accent-soft:#f6e3df; --good:#3d7f52; --mid:#a07a22; --bad:#a8322d;
+  --serif:"Songti SC","Noto Serif CJK SC","Source Han Serif SC","STSong",serif;
+  --sans:-apple-system,"PingFang SC","Hiragino Sans GB","Noto Sans CJK SC","Microsoft YaHei",sans-serif;
+}
+*{box-sizing:border-box}
+html,body{margin:0;background:var(--bg);color:var(--ink);font-family:var(--sans);-webkit-text-size-adjust:100%}
+button,input,textarea{font:inherit;color:inherit}
+[hidden]{display:none!important}
+
+/* lock screen */
+#lock{min-height:100vh;display:flex;align-items:center;justify-content:center;padding:24px 16px}
+.lockcard{width:100%;max-width:380px;background:var(--card);border:1px solid var(--line);border-radius:18px;
+  padding:34px 26px 26px;box-shadow:0 10px 30px rgba(80,50,30,.08);text-align:center}
+.lockcard h1{font-family:var(--serif);font-weight:600;font-size:24px;margin:0 0 6px;letter-spacing:2px}
+.lockcard p{color:var(--muted);margin:0 0 22px;font-size:14px}
+.lockcard input[type=password]{width:100%;padding:12px 14px;border:1px solid var(--line);border-radius:10px;
+  background:#fff;font-size:16px;outline:none}
+.lockcard input[type=password]:focus{border-color:var(--accent)}
+.lockcard label{display:flex;gap:8px;align-items:center;justify-content:center;margin:14px 0 18px;color:var(--muted);font-size:14px}
+.btn{border:0;border-radius:10px;padding:11px 18px;background:var(--accent);color:#fff;font-weight:600;cursor:pointer}
+.btn:disabled{opacity:.6;cursor:default}
+.btn.ghost{background:transparent;color:var(--ink);border:1px solid var(--line);font-weight:500}
+.lockcard .btn{width:100%;font-size:16px}
+.err{color:var(--bad);min-height:20px;margin-top:12px;font-size:14px}
+
+/* app */
+.wrap{max-width:1180px;margin:0 auto;padding:0 16px 60px}
+header.top{padding:30px 0 14px;text-align:center}
+header.top h1{font-family:var(--serif);font-weight:600;font-size:28px;margin:0;letter-spacing:3px}
+header.top .sub{color:var(--muted);margin-top:6px;font-size:14px;letter-spacing:1px}
+.intro{max-width:760px;margin:10px auto 0;color:#5c534b;font-size:15px;line-height:1.75;text-align:center}
+.bar{position:sticky;top:0;z-index:5;background:rgba(245,239,230,.94);backdrop-filter:blur(6px);
+  border-bottom:1px solid var(--line);margin:18px -16px 0;padding:10px 16px;display:flex;flex-wrap:wrap;gap:10px;align-items:center}
+.bar input{flex:1 1 180px;min-width:0;max-width:280px;padding:8px 12px;border:1px solid var(--line);border-radius:9px;background:#fff}
+.bar .status{color:var(--muted);font-size:13px;flex:1 1 160px}
+.bar .btn{padding:8px 14px;font-size:14px}
+.banner{margin:14px 0 0;padding:10px 14px;border-radius:10px;background:var(--accent-soft);color:var(--bad);font-size:14px}
+
+h2.sec{font-family:var(--serif);font-weight:600;font-size:21px;margin:38px 0 4px;letter-spacing:1px}
+.sec-note{color:var(--muted);font-size:13px;margin:0 0 14px}
+.grid{display:grid;grid-template-columns:repeat(auto-fill,minmax(290px,1fr));gap:18px}
+
+/* summary */
+details.sum{margin-top:22px;background:var(--card);border:1px solid var(--line);border-radius:14px;padding:4px 16px}
+details.sum summary{cursor:pointer;padding:12px 0;font-weight:600}
+table.rank{width:100%;border-collapse:collapse;font-size:14px;margin:2px 0 12px}
+table.rank th,table.rank td{padding:7px 6px;border-top:1px solid var(--line);text-align:center;white-space:nowrap}
+table.rank th:nth-child(2),table.rank td:nth-child(2){text-align:left;white-space:normal}
+table.rank th{color:var(--muted);font-weight:500;border-top:0}
+table.rank tr.row{cursor:pointer}
+table.rank tr.row:hover td{background:#faf4ea}
+.g{color:var(--good)} .m{color:var(--mid)} .b{color:var(--bad)}
+
+/* card */
+.card{background:var(--card);border:1px solid var(--line);border-radius:16px;overflow:hidden;display:flex;flex-direction:column;
+  box-shadow:0 4px 14px rgba(80,50,30,.05)}
+.thumb{display:block;border:0;padding:0;margin:0;background:#efe7db;cursor:zoom-in;width:100%;position:relative}
+.thumb img{display:block;width:100%;height:auto;opacity:0;transition:opacity .35s}
+.thumb img.ok{opacity:1}
+.thumb .spin{position:absolute;inset:0;display:flex;align-items:center;justify-content:center;color:var(--muted);font-size:13px}
+.cbody{padding:14px 14px 16px;display:flex;flex-direction:column;gap:12px}
+.ctitle{display:flex;justify-content:space-between;align-items:baseline;gap:8px}
+.ctitle h3{margin:0;font-size:17px;font-family:var(--serif);font-weight:600}
+.ctitle .tag{color:var(--muted);font-size:12px;font-family:ui-monospace,Menlo,monospace}
+.rate{display:flex;gap:8px}
+.rate button{flex:1;border:1px solid var(--line);background:#fff;border-radius:999px;padding:8px 0;cursor:pointer;font-size:15px;
+  display:flex;gap:6px;justify-content:center;align-items:center}
+.rate button b{font-weight:600;font-variant-numeric:tabular-nums}
+.rate button[data-r=good][aria-pressed=true]{background:var(--good);border-color:var(--good);color:#fff}
+.rate button[data-r=mid][aria-pressed=true]{background:var(--mid);border-color:var(--mid);color:#fff}
+.rate button[data-r=bad][aria-pressed=true]{background:var(--bad);border-color:var(--bad);color:#fff}
+.rate button:disabled{opacity:.6}
+ul.cm{list-style:none;margin:0;padding:0;display:flex;flex-direction:column;gap:8px;max-height:300px;overflow:auto}
+ul.cm li{background:#faf5ee;border-radius:10px;padding:8px 10px;font-size:14px;line-height:1.6}
+ul.cm .who{font-weight:600;margin-right:6px}
+ul.cm .when{color:var(--muted);font-size:12px}
+ul.cm .txt{white-space:pre-wrap;word-break:break-word;margin-top:2px}
+ul.cm li.empty{background:none;color:var(--muted);padding:0;font-size:13px}
+form.cf{display:flex;flex-direction:column;gap:8px}
+form.cf textarea{width:100%;min-height:64px;resize:vertical;padding:9px 11px;border:1px solid var(--line);border-radius:10px;background:#fff;font-size:15px}
+form.cf textarea:focus{outline:none;border-color:var(--accent)}
+form.cf .row{display:flex;justify-content:space-between;align-items:center;gap:8px}
+form.cf .hint{color:var(--muted);font-size:12px}
+form.cf .btn{padding:8px 16px;font-size:14px;white-space:nowrap;flex-shrink:0}
+
+/* lightbox */
+#lb{position:fixed;inset:0;z-index:20;background:rgba(20,16,14,.92);overflow:auto;display:flex;align-items:flex-start;justify-content:center}
+#lb img{display:block;max-width:100vw;max-height:100vh;margin:auto;object-fit:contain;cursor:zoom-in}
+#lb.zoom{align-items:flex-start;justify-content:flex-start}
+#lb.zoom img{max-width:none;max-height:none;cursor:zoom-out}
+#lb .x{position:fixed;top:10px;right:12px;z-index:21;width:42px;height:42px;border-radius:50%;border:0;background:rgba(255,255,255,.9);
+  font-size:24px;line-height:42px;cursor:pointer}
+#lb .cap{position:fixed;left:0;right:0;bottom:0;text-align:center;color:#eee;font-size:13px;padding:8px;background:linear-gradient(transparent,rgba(0,0,0,.6))}
+#toast{position:fixed;left:50%;bottom:24px;transform:translateX(-50%);background:#2e2925;color:#fff;padding:10px 16px;border-radius:10px;
+  font-size:14px;z-index:30;max-width:90vw;text-align:center}
+@media (max-width:520px){header.top h1{font-size:23px}.grid{grid-template-columns:1fr}
+  .bar{position:static;gap:8px}.bar input{flex:1 1 100%;max-width:none}.bar .status{flex:1 1 auto}}
+</style>
+</head>
+<body>
+
+<div id="lock">
+  <form class="lockcard" id="lockForm" autocomplete="off">
+    <h1>初稿评选</h1>
+    <p>请输入访问密码</p>
+    <input type="password" id="pw" placeholder="访问密码" autocomplete="current-password" required>
+    <label><input type="checkbox" id="remember" checked> 在这台设备上记住密码</label>
+    <button class="btn" id="unlockBtn" type="submit">进入</button>
+    <div class="err" id="lockErr" role="alert"></div>
+  </form>
+</div>
+
+<div id="app" hidden>
+  <div class="wrap">
+    <header class="top">
+      <h1 id="title"></h1>
+      <div class="sub" id="subtitle"></div>
+      <p class="intro" id="intro"></p>
+    </header>
+    <div class="bar">
+      <input id="nick" maxlength="30" placeholder="昵称（可选）">
+      <span class="status" id="status">正在读取评分…</span>
+      <button class="btn ghost" id="refresh" type="button">刷新</button>
+      <button class="btn ghost" id="logout" type="button">退出</button>
+    </div>
+    <div class="banner" id="banner" hidden></div>
+    <details class="sum" id="sum">
+      <summary>评分汇总（点击展开）</summary>
+      <table class="rank"><thead><tr><th>#</th><th>版本</th><th class="g">好</th><th class="m">中</th><th class="b">差</th><th>评论</th></tr></thead>
+        <tbody id="rankBody"></tbody></table>
+    </details>
+    <div id="groups"></div>
+  </div>
+</div>
+
+<div id="lb" hidden><button class="x" type="button" aria-label="关闭">×</button><img alt=""><div class="cap"></div></div>
+<div id="toast" hidden></div>
+
+<script>
+(() => {
+'use strict';
+const SALT = '6GR+akryGWXjSNXXDg//gA==', ITER = 400000, MANIFEST = 'data/manifest.bin?v=aa519fa921';
+const API = 'https://api.github.com';
+const LS = {key: 'wsr.key', vid: 'wsr.vid', nick: 'wsr.nick'};
+const LABEL = {good: '好', mid: '中', bad: '差'};
+const enc = new TextEncoder(), dec = new TextDecoder();
+const $ = (s, el = document) => el.querySelector(s);
+const b64d = s => Uint8Array.from(atob(s), c => c.charCodeAt(0));
+const b64e = u8 => { let s = ''; for (let i = 0; i < u8.length; i++) s += String.fromCharCode(u8[i]); return btoa(s); };
+const store = {
+  get: k => { try { return localStorage.getItem(k); } catch (e) { return null; } },
+  set: (k, v) => { try { localStorage.setItem(k, v); } catch (e) {} },
+  del: k => { try { localStorage.removeItem(k); } catch (e) {} },
+};
+function el(tag, attrs, ...kids) {
+  const n = document.createElement(tag);
+  for (const [k, v] of Object.entries(attrs || {})) {
+    if (k === 'class') n.className = v; else if (k === 'text') n.textContent = v; else n.setAttribute(k, v);
+  }
+  for (const c of kids) if (c != null) n.append(c);
+  return n;
+}
+let toastTimer;
+function toast(msg) {
+  const t = $('#toast'); t.textContent = msg; t.hidden = false;
+  clearTimeout(toastTimer); toastTimer = setTimeout(() => { t.hidden = true; }, 2600);
+}
+
+/* ---------- crypto ---------- */
+async function deriveKey(pw) {
+  const base = await crypto.subtle.importKey('raw', enc.encode(pw), 'PBKDF2', false, ['deriveKey']);
+  return crypto.subtle.deriveKey({name: 'PBKDF2', salt: b64d(SALT), iterations: ITER, hash: 'SHA-256'},
+    base, {name: 'AES-GCM', length: 256}, true, ['decrypt']);
+}
+async function decrypt(key, buf) {
+  const u = new Uint8Array(buf);
+  return crypto.subtle.decrypt({name: 'AES-GCM', iv: u.slice(0, 12)}, key, u.slice(12));
+}
+async function fetchPlain(key, url) {
+  const r = await fetch(url);
+  if (!r.ok) throw new Error('HTTP ' + r.status);
+  return decrypt(key, await r.arrayBuffer());
+}
+
+/* ---------- state ---------- */
+let KEY = null, M = null, records = [], VID = store.get(LS.vid);
+if (!VID) { VID = (crypto.randomUUID ? crypto.randomUUID() : b64e(crypto.getRandomValues(new Uint8Array(12)))); store.set(LS.vid, VID); }
+const items = new Map(), byIssue = new Map(), cards = new Map(), pending = new Set();
+
+/* ---------- lock ---------- */
+async function openWith(key) {
+  const m = JSON.parse(dec.decode(await fetchPlain(key, MANIFEST)));
+  KEY = key; M = m; start();
+}
+$('#lockForm').addEventListener('submit', async e => {
+  e.preventDefault();
+  const pw = $('#pw').value; if (!pw) return;
+  const btn = $('#unlockBtn'); btn.disabled = true; btn.textContent = '正在解锁…'; $('#lockErr').textContent = '';
+  try {
+    const key = await deriveKey(pw);
+    await openWith(key);
+    if ($('#remember').checked) store.set(LS.key, b64e(new Uint8Array(await crypto.subtle.exportKey('raw', key))));
+  } catch (err) {
+    $('#lockErr').textContent = (err && err.name === 'OperationError') ? '密码不对，请再试一次' : '打开失败：' + (err.message || err);
+    btn.disabled = false; btn.textContent = '进入';
+  }
+});
+$('#logout').addEventListener('click', () => { store.del(LS.key); location.reload(); });
+
+(async () => {
+  if (!window.crypto || !crypto.subtle) { $('#lockErr').textContent = '这个浏览器不支持解密，请换用新版浏览器打开'; return; }
+  const raw = store.get(LS.key);
+  if (raw) {
+    try { await openWith(await crypto.subtle.importKey('raw', b64d(raw), 'AES-GCM', true, ['decrypt'])); return; }
+    catch (e) { store.del(LS.key); }
+  }
+  $('#pw').focus();
+})();
+
+/* ---------- GitHub storage ---------- */
+function gh(path, opts) {
+  opts = opts || {};
+  const headers = {'Accept': 'application/vnd.github+json', 'Authorization': 'Bearer ' + M.token, 'X-GitHub-Api-Version': '2022-11-28'};
+  if (opts.body) headers['Content-Type'] = 'application/json';
+  return fetch(API + path, {method: opts.method || 'GET', body: opts.body, headers, cache: 'no-store'});
+}
+const MARK = /<!-- wsr:([A-Za-z0-9+\/=]+) -->\s*$/;
+function parse(c) {
+  const num = Number(String(c.issue_url || '').split('/').pop());
+  const img = byIssue.get(num); if (!img) return null;
+  const base = {id: c.id, img, at: c.created_at};
+  const m = MARK.exec(c.body || '');
+  if (m) {
+    try {
+      const d = JSON.parse(dec.decode(b64d(m[1])));
+      const n = String(d.n || '').slice(0, 30), vid = String(d.vid || '');
+      if (d.t === 'r' && ['good', 'mid', 'bad', 'none'].includes(d.r)) return Object.assign(base, {t: 'r', r: d.r, n, vid});
+      if (d.t === 'c' && d.x) return Object.assign(base, {t: 'c', x: String(d.x).slice(0, 2000), n, vid});
+    } catch (e) {}
+    return null;
+  }
+  // a comment written directly on GitHub (e.g. a reply from the couple)
+  return Object.assign(base, {t: 'c', x: String(c.body || '').slice(0, 2000), n: (c.user && c.user.login) || 'GitHub', vid: ''});
+}
+async function loadAll() {
+  const out = [];
+  for (let page = 1; page <= 40; page++) {
+    const r = await gh(`/repos/${M.repo}/issues/comments?per_page=100&page=${page}&sort=created&direction=asc`);
+    if (!r.ok) { const e = new Error('api'); e.status = r.status; throw e; }
+    const arr = await r.json();
+    for (const c of arr) { const rec = parse(c); if (rec) out.push(rec); }
+    if (arr.length < 100) break;
+  }
+  return out;
+}
+async function save(img, payload, readable) {
+  const body = readable.replace(/@/g, '＠') + '\n\n<!-- wsr:' + b64e(enc.encode(JSON.stringify(payload))) + ' -->';
+  const r = await gh(`/repos/${M.repo}/issues/${items.get(img).issue}/comments`, {method: 'POST', body: JSON.stringify({body})});
+  if (!r.ok) { const e = new Error('api'); e.status = r.status; throw e; }
+  return parse(await r.json());
+}
+function apiMessage(err) {
+  if (err && err.status === 401) return '评论服务的令牌已失效，请告诉新人更新一下';
+  if (err && err.status === 403) return 'GitHub 暂时拒绝了请求（可能太频繁），请稍后再试';
+  if (err && err.status) return 'GitHub 返回错误 ' + err.status + '，请稍后再试';
+  return '连不上 GitHub，请检查网络后点「刷新」';
+}
+
+/* ---------- derived data ---------- */
+function tally(img) {
+  const latest = new Map();
+  for (const r of records) if (r.img === img && r.t === 'r') latest.set(r.vid || ('#' + r.id), r.r);
+  const c = {good: 0, mid: 0, bad: 0};
+  for (const v of latest.values()) if (v in c) c[v]++;
+  return {c, mine: latest.get(VID) || 'none'};
+}
+const comments = img => records.filter(r => r.img === img && r.t === 'c');
+function fmt(ts) {
+  const d = new Date(ts), p = n => String(n).padStart(2, '0');
+  return `${d.getMonth() + 1}月${d.getDate()}日 ${p(d.getHours())}:${p(d.getMinutes())}`;
+}
+
+/* ---------- rendering ---------- */
+function start() {
+  $('#lock').hidden = true; $('#app').hidden = false;
+  document.title = M.title;
+  $('#title').textContent = M.title; $('#subtitle').textContent = M.subtitle || ''; $('#intro').textContent = M.intro || '';
+  const nick = $('#nick'); nick.value = store.get(LS.nick) || '';
+  nick.addEventListener('input', () => store.set(LS.nick, nick.value.trim()));
+  const root = $('#groups');
+  for (const g of M.groups) {
+    root.append(el('h2', {class: 'sec', text: g.label}));
+    if (g.note) root.append(el('p', {class: 'sec-note', text: g.note}));
+    const grid = el('div', {class: 'grid'}); root.append(grid);
+    for (const it of g.items) {
+      it.group = g.label; items.set(it.id, it); byIssue.set(it.issue, it.id);
+      grid.append(buildCard(it));
+    }
+  }
+  lazyImages();
+  $('#refresh').addEventListener('click', () => refresh(true));
+  refresh(false);
+  setInterval(() => { if (document.visibilityState === 'visible') refresh(false); }, 120000);
+}
+function buildCard(it) {
+  const img = el('img', {alt: `${it.group} · 第 ${it.n} 版`, width: it.w, height: it.h, loading: 'lazy'});
+  const thumb = el('button', {class: 'thumb', type: 'button', 'aria-label': '查看大图'}, el('span', {class: 'spin', text: '正在解密图片…'}), img);
+  thumb.addEventListener('click', () => openLightbox(it));
+  const rate = el('div', {class: 'rate'});
+  const btns = {};
+  for (const r of ['good', 'mid', 'bad']) {
+    const b = el('button', {type: 'button', 'data-r': r, 'aria-pressed': 'false'}, LABEL[r], el('b', {text: '0'}));
+    b.addEventListener('click', () => vote(it.id, r));
+    btns[r] = b; rate.append(b);
+  }
+  const list = el('ul', {class: 'cm'});
+  const ta = el('textarea', {maxlength: '1000', placeholder: '写下你对这一版的意见…'});
+  const send = el('button', {class: 'btn', type: 'submit', text: '发表评论'});
+  const form = el('form', {class: 'cf'}, ta, el('div', {class: 'row'}, el('span', {class: 'hint', text: '评论会长期保存，大家都看得到'}), send));
+  form.addEventListener('submit', e => { e.preventDefault(); comment(it.id, ta, send); });
+  const card = el('article', {class: 'card', id: 'card-' + it.id}, thumb,
+    el('div', {class: 'cbody'}, el('div', {class: 'ctitle'}, el('h3', {text: `${it.group} · 第 ${it.n} 版`}), el('span', {class: 'tag', text: it.id})),
+      rate, list, form));
+  cards.set(it.id, {card, img, btns, list, thumb});
+  return card;
+}
+function renderCard(id) {
+  const c = cards.get(id), t = tally(id);
+  for (const r of ['good', 'mid', 'bad']) {
+    c.btns[r].querySelector('b').textContent = t.c[r];
+    c.btns[r].setAttribute('aria-pressed', String(t.mine === r));
+    c.btns[r].disabled = pending.has(id + ':r');
+  }
+  const cs = comments(id);
+  c.list.replaceChildren();
+  if (!cs.length) c.list.append(el('li', {class: 'empty', text: '还没有评论'}));
+  for (const r of cs) {
+    c.list.append(el('li', {}, el('span', {class: 'who', text: r.n || '匿名'}), el('span', {class: 'when', text: fmt(r.at)}),
+      el('div', {class: 'txt', text: r.x})));
+  }
+}
+function renderRank() {
+  const rows = [...items.values()].map(it => { const t = tally(it.id).c; return {it, t, n: comments(it.id).length, s: t.good - t.bad}; });
+  rows.sort((a, b) => b.s - a.s || b.t.good - a.t.good || b.t.mid - a.t.mid);
+  const body = $('#rankBody'); body.replaceChildren();
+  rows.forEach((row, i) => {
+    const tr = el('tr', {class: 'row'}, el('td', {text: String(i + 1)}), el('td', {text: `${row.it.group} · 第 ${row.it.n} 版`}),
+      el('td', {class: 'g', text: String(row.t.good)}), el('td', {class: 'm', text: String(row.t.mid)}),
+      el('td', {class: 'b', text: String(row.t.bad)}), el('td', {text: String(row.n)}));
+    tr.addEventListener('click', () => $('#card-' + row.it.id).scrollIntoView({behavior: 'smooth', block: 'start'}));
+    body.append(tr);
+  });
+}
+function renderAll() { for (const id of items.keys()) renderCard(id); renderRank(); }
+
+let refreshing = false;
+async function refresh(manual) {
+  if (refreshing) return; refreshing = true;
+  $('#status').textContent = '正在同步…';
+  try {
+    const fresh = await loadAll();
+    const local = records.filter(r => r.local && !fresh.some(f => f.id === r.id));
+    records = fresh.concat(local);
+    $('#banner').hidden = true;
+    const n = records.filter(r => r.t === 'c').length;
+    const now = new Date();
+    $('#status').textContent = `共 ${n} 条评论 · ${String(now.getHours()).padStart(2, '0')}:${String(now.getMinutes()).padStart(2, '0')} 已同步`;
+    if (manual) toast('已刷新');
+  } catch (err) {
+    $('#banner').textContent = apiMessage(err); $('#banner').hidden = false; $('#status').textContent = '同步失败';
+  } finally { refreshing = false; renderAll(); }
+}
+
+async function vote(id, r) {
+  const key = id + ':r'; if (pending.has(key)) return;
+  const next = tally(id).mine === r ? 'none' : r;
+  const nick = $('#nick').value.trim().slice(0, 30);
+  const temp = {id: 'tmp' + Date.now(), img: id, t: 'r', r: next, vid: VID, n: nick, at: new Date().toISOString(), local: true};
+  records.push(temp); pending.add(key); renderCard(id); renderRank();
+  try {
+    const saved = await save(id, {v: 1, t: 'r', r: next, vid: VID, n: nick},
+      next === 'none' ? `取消评分（${nick || '匿名'}）` : `评分：**${LABEL[next]}**（${nick || '匿名'}）`);
+    records[records.indexOf(temp)] = Object.assign(saved, {local: true});
+    toast(next === 'none' ? '已取消评分' : `已评「${LABEL[next]}」`);
+  } catch (err) {
+    records.splice(records.indexOf(temp), 1); toast('评分没保存上：' + apiMessage(err));
+  } finally { pending.delete(key); renderCard(id); renderRank(); }
+}
+async function comment(id, ta, btn) {
+  const x = ta.value.trim(); if (!x) { ta.focus(); return; }
+  const nick = $('#nick').value.trim().slice(0, 30);
+  btn.disabled = true; btn.textContent = '发送中…';
+  try {
+    const saved = await save(id, {v: 1, t: 'c', x, vid: VID, n: nick}, `**${nick || '匿名'}**：\n\n${x}`);
+    records.push(Object.assign(saved, {local: true})); ta.value = ''; toast('评论已发表');
+  } catch (err) { toast('评论没发出去：' + apiMessage(err)); }
+  finally { btn.disabled = false; btn.textContent = '发表评论'; renderCard(id); renderRank(); }
+}
+
+/* ---------- images ---------- */
+const urls = new Map();
+async function previewURL(it) {
+  if (!urls.has(it.id)) urls.set(it.id, fetchPlain(KEY, it.p).then(b => URL.createObjectURL(new Blob([b], {type: 'image/webp'}))));
+  return urls.get(it.id);
+}
+function lazyImages() {
+  const load = async id => {
+    const c = cards.get(id), it = items.get(id);
+    const spin = c.thumb.querySelector('.spin');
+    try {
+      c.img.onload = () => { c.img.classList.add('ok'); if (spin) spin.remove(); };
+      c.img.src = await previewURL(it);
+    } catch (e) { if (spin) spin.textContent = '图片加载失败，请刷新页面'; }
+  };
+  if (!('IntersectionObserver' in window)) { for (const id of items.keys()) load(id); return; }
+  const io = new IntersectionObserver(es => { for (const e of es) if (e.isIntersecting) { io.unobserve(e.target); load(e.target.dataset.id); } },
+    {rootMargin: '900px 0px'});
+  for (const [id, c] of cards) { c.card.dataset.id = id; io.observe(c.card); }
+}
+const lb = $('#lb'), lbImg = $('#lb img');
+let fullURL = null;
+async function openLightbox(it) {
+  lb.classList.remove('zoom'); lb.hidden = false; document.body.style.overflow = 'hidden';
+  $('#lb .cap').textContent = `${it.group} · 第 ${it.n} 版　·　点图片放大 / 缩小`;
+  lbImg.src = await previewURL(it);
+  try {
+    const b = await fetchPlain(KEY, it.f);
+    if (lb.hidden) return;
+    if (fullURL) URL.revokeObjectURL(fullURL);
+    fullURL = URL.createObjectURL(new Blob([b], {type: 'image/webp'})); lbImg.src = fullURL;
+  } catch (e) {}
+}
+function closeLightbox() { lb.hidden = true; document.body.style.overflow = ''; }
+lbImg.addEventListener('click', e => { e.stopPropagation(); lb.classList.toggle('zoom'); });
+lb.addEventListener('click', closeLightbox);
+$('#lb .x').addEventListener('click', e => { e.stopPropagation(); closeLightbox(); });
+document.addEventListener('keydown', e => { if (e.key === 'Escape' && !lb.hidden) closeLightbox(); });
+})();
+</script>
+</body>
+</html>
