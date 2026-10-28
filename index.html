@@ -84,6 +84,7 @@ ul.cm{list-style:none;margin:0;padding:0;display:flex;flex-direction:column;gap:
 ul.cm li{background:#faf5ee;border-radius:10px;padding:8px 10px;font-size:14px;line-height:1.6}
 ul.cm .who{font-weight:600;margin-right:6px}
 ul.cm .when{color:var(--muted);font-size:12px}
+ul.cm .old{margin-left:6px;padding:0 6px;border-radius:999px;background:#ece3d6;color:var(--muted);font-size:11px}
 ul.cm .txt{white-space:pre-wrap;word-break:break-word;margin-top:2px}
 ul.cm li.empty{background:none;color:var(--muted);padding:0;font-size:13px}
 form.cf{display:flex;flex-direction:column;gap:8px}
@@ -149,7 +150,7 @@ form.cf .btn{padding:8px 16px;font-size:14px;white-space:nowrap;flex-shrink:0}
 <script>
 (() => {
 'use strict';
-const SALT = '6GR+akryGWXjSNXXDg//gA==', ITER = 400000, MANIFEST = 'data/manifest.bin?v=aa519fa921';
+const SALT = '6GR+akryGWXjSNXXDg//gA==', ITER = 400000, MANIFEST = 'data/manifest.bin?v=e9a6adfcc2';
 const API = 'https://api.github.com';
 const LS = {key: 'wsr.key', vid: 'wsr.vid', nick: 'wsr.nick'};
 const LABEL = {good: '好', mid: '中', bad: '差'};
@@ -344,8 +345,10 @@ function renderCard(id) {
   const cs = comments(id);
   c.list.replaceChildren();
   if (!cs.length) c.list.append(el('li', {class: 'empty', text: '还没有评论'}));
+  const upd = items.get(id).updated;
   for (const r of cs) {
-    c.list.append(el('li', {}, el('span', {class: 'who', text: r.n || '匿名'}), el('span', {class: 'when', text: fmt(r.at)}),
+    const old = upd && r.at < upd ? el('span', {class: 'old', text: '旧版', title: '这条评论写于图片更新之前'}) : null;
+    c.list.append(el('li', {}, el('span', {class: 'who', text: r.n || '匿名'}), el('span', {class: 'when', text: fmt(r.at)}), old,
       el('div', {class: 'txt', text: r.x})));
   }
 }
